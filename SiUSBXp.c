@@ -93,11 +93,11 @@
 #define		SI_MAX_WRITE_SIZE               4096
 
 #ifdef DEBUG
-#define DBG(args...) printf (args)
+#define DBG(...) printf (__VA_ARGS__)
 #else
-#define DBG(format, ...)
+#define DBG(...) do{}while(0)
 #endif
-#define ERR(args...) printf (args)
+#define ERR(...) printf (__VA_ARGS__)
 
 #define MAGIC 12939485
 #define BUF_SIZE 4096
