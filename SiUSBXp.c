@@ -294,12 +294,20 @@ int SI_Open(int DeviceNum, struct SI_Private ** pHandle) {
 	}
 
 	if (Handle!=NULL) {
-		DBG("  USB Ctrl Message1 retval=%i\n", usb_control_msg(Handle->udev, 0x40, 0x00, 0xFFFF, 0, NULL, 0, TXTimeout));
-		DBG("  USB Reset Endpoint IN retval=%i\n", usb_resetep(Handle->udev, Handle->ep_in));
-		DBG("  USB Reset Endpoint OUT retval=%i\n", usb_resetep(Handle->udev, Handle->ep_out));
-		DBG("  USB Clear Halt IN retval=%i\n", usb_clear_halt(Handle->udev, Handle->ep_in));
-		DBG("  USB Clear Halt OUT retval=%i\n", usb_clear_halt(Handle->udev, Handle->ep_out));
-		DBG("  USB Ctrl Message2 retval=%i\n", usb_control_msg(Handle->udev, 0x40, 0x02, 0x0002, 0, NULL, 0, TXTimeout));	
+		int retval;
+		(void)retval; /* "Use" the variable even when DEBUG not set. */
+		retval = usb_control_msg(Handle->udev, 0x40, 0x00, 0xFFFF, 0, NULL, 0, TXTimeout);
+		DBG("  USB Ctrl Message1 retval=%i\n", retval);
+		retval = usb_resetep(Handle->udev, Handle->ep_in);
+		DBG("  USB Reset Endpoint IN retval=%i\n", retval);
+		retval = usb_resetep(Handle->udev, Handle->ep_out);
+		DBG("  USB Reset Endpoint OUT retval=%i\n", retval);
+		retval = usb_clear_halt(Handle->udev, Handle->ep_in);
+		DBG("  USB Clear Halt IN retval=%i\n", retval);
+		retval = usb_clear_halt(Handle->udev, Handle->ep_out);
+		DBG("  USB Clear Halt OUT retval=%i\n", retval);
+		retval = usb_control_msg(Handle->udev, 0x40, 0x02, 0x0002, 0, NULL, 0, TXTimeout);
+		DBG("  USB Ctrl Message2 retval=%i\n", retval);
 
 		Handle->bufsize=0;
 
