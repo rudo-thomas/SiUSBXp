@@ -85,6 +85,10 @@
 
 struct SI_Private;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int SI_GetNumDevices(int *NumDevices);
 int SI_GetProductString(int DeviceNum, char * DeviceString, int Flags);
 int SI_Open(int DeviceNum, struct SI_Private ** pHandle);
@@ -97,5 +101,9 @@ int SI_FlushBuffers(struct SI_Private * Handle, char FlushTransmit, char FlushRe
 int SI_SetTimeouts(int ReadTimeout, int WriteTimeout);
 int SI_GetTimeouts(int *ReadTimeout, int *WriteTimeout);
 int SI_CheckRXQueue(struct SI_Private * Handle, int *NumBytesInQueue, int *QueueStatus);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
