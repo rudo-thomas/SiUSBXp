@@ -35,13 +35,12 @@
  *   feedback, and for the original project idea.                         *
  *                                                                        *
  *   Version History:                                                     *
+ *               2019-01       Additional cosmetic work by                *
+ *                             Rudo Thomas <rudo.thomas@gmail.com>        *
  *   0.01        2010-10-20    Initial release                            *
  *                             Craig Shelley <craig@microtron.org.uk>     *
  *                                                                        *
  **************************************************************************/
-
-/*Un-comment this line to see debug info*/
-//#define DEBUG
 
 #include <stdio.h>
 #include <string.h>
@@ -50,47 +49,15 @@
 #include <errno.h>
 #include <usb.h>
 
+#include "SiUSBXp.h"
+
+/*Un-comment this line to see debug info*/
+//#define DEBUG
+
 
 /*Vendor ID / Product ID*/
 #define		SI_USB_VID                      0x10c4
 #define         SI_USB_PID                      0x8149
-
-/*Return codes*/
-#define		SI_SUCCESS                      0x00
-#define		SI_DEVICE_NOT_FOUND             0xFF
-#define		SI_INVALID_HANDLE               0x01
-#define		SI_READ_ERROR                   0x02
-#define		SI_RX_QUEUE_NOT_READY           0x03
-#define		SI_WRITE_ERROR                  0x04
-#define		SI_RESET_ERROR                  0x05
-#define		SI_INVALID_PARAMETER            0x06
-#define		SI_INVALID_REQUEST_LENGTH       0x07
-#define		SI_DEVICE_IO_FAILED             0x08
-#define		SI_INVALID_BAUDRATE             0x09
-#define		SI_FUNCTION_NOT_SUPPORTED       0x0a
-#define		SI_GLOBAL_DATA_ERROR            0x0b
-#define		SI_SYSTEM_ERROR_CODE            0x0c
-#define		SI_READ_TIMED_OUT               0x0d
-#define		SI_WRITE_TIMED_OUT              0x0e
-#define		SI_IO_PENDING                   0x0f
-
-/*GetProductString() function flags*/
-#define		SI_RETURN_SERIAL_NUMBER         0x00
-#define		SI_RETURN_DESCRIPTION           0x01
-#define		SI_RETURN_LINK_NAME             0x02
-#define		SI_RETURN_VID                   0x03
-#define		SI_RETURN_PID                   0x04
-
-/*RX Queue status flags*/
-#define		SI_RX_NO_OVERRUN                0x00
-#define		SI_RX_EMPTY                     0x00
-#define		SI_RX_OVERRUN                   0x01
-#define		SI_RX_READY                     0x02
-
-/*Buffer size limits*/
-#define		SI_MAX_DEVICE_STRLEN            256
-#define		SI_MAX_READ_SIZE                4096*16
-#define		SI_MAX_WRITE_SIZE               4096
 
 #ifdef DEBUG
 #define DBG(...) printf (__VA_ARGS__)
@@ -102,11 +69,11 @@
 #define MAGIC 12939485
 #define BUF_SIZE 4096
 
-int RXTimeout=1000;
-int TXTimeout=1000;
+static int RXTimeout=1000;
+static int TXTimeout=1000;
 
-int USBInitialised=0;
-struct usb_bus *busses;
+static int USBInitialised=0;
+static struct usb_bus *busses;
 
 
 struct SI_Private {
@@ -119,7 +86,7 @@ struct SI_Private {
 	char buffer[BUF_SIZE];
 };
 
-void init(void) {
+static void init(void) {
 	if (!USBInitialised) {
 		DBG("Initialising USB\n");
 		usb_init();
