@@ -73,7 +73,6 @@ static int RXTimeout=1000;
 static int TXTimeout=1000;
 
 static int USBInitialised=0;
-static struct usb_bus *busses;
 
 
 struct SI_Private {
@@ -95,38 +94,38 @@ static void init(void) {
 	}
 }
 
-
-
-int SI_GetNumDevices(int *NumDevices) {
-	struct usb_bus *bus;
-	struct usb_device *dev;
-	int devcount;
-
-	DBG("SI_GetNumDevices()\n");
-	init();
-    
-    	usb_find_busses();
-    	usb_find_devices();
-    
-    	busses = usb_get_busses();
-	
-	devcount=0;
-	for (bus = busses; bus; bus = bus->next) {
-		for (dev = bus->devices; dev; dev = dev->next) {
-			devcount++;
+/* Scan USB for given device number. Return total number of devices. */
+static int scanBusses(int deviceNum, struct usb_device **out_found) {
+	int devcount = 0;
+	usb_find_busses();
+	usb_find_devices();
+	for (struct usb_bus *bus = usb_get_busses(); bus; bus = bus->next) {
+		for (struct usb_device *dev = bus->devices; dev; dev = dev->next) {
+			if (dev->descriptor.idVendor  == SI_USB_VID &&
+			    dev->descriptor.idProduct == SI_USB_PID) {
+				if (devcount == deviceNum && out_found) {
+					*out_found = dev;
+				}
+				devcount++;
+			}
 		}
 	}
-	*NumDevices=devcount;
+	return devcount;
+}
+
+int SI_GetNumDevices(int *NumDevices) {
+	DBG("SI_GetNumDevices()\n");
+	init();
+	
+	*NumDevices = scanBusses(-1, NULL);
 
 	DBG("  NumDevices=%i\n", *NumDevices);
 	return SI_SUCCESS;
 }
 
 int SI_GetProductString(int DeviceNum, char * DeviceString, int Flags) {
-	struct usb_bus *bus;
-	struct usb_device *dev, *pdev;
+	struct usb_device *pdev;
 	usb_dev_handle *udev;
-	int devcount;
 	int ret, descriptor;
 	char tbuf[256];
 
@@ -155,14 +154,8 @@ int SI_GetProductString(int DeviceNum, char * DeviceString, int Flags) {
 			return SI_INVALID_PARAMETER;
 	}
 
-	devcount=0;
 	pdev=NULL;
-	for (bus = busses; bus; bus = bus->next) {
-		for (dev = bus->devices; dev; dev = dev->next) {
-			if (devcount==DeviceNum) pdev=dev;
-			devcount++;
-		}
-	}
+	scanBusses(DeviceNum, &pdev);
 	
 	if (pdev!=NULL) {
 		DBG("  Vendor=0x%04X Product=0x%04X\n", pdev->descriptor.idVendor, pdev->descriptor.idProduct);
@@ -227,25 +220,16 @@ static int SI_GetBuffer(struct SI_Private * Handle, char * Buffer, int BytesToGe
 }
 
 int SI_Open(int DeviceNum, struct SI_Private ** pHandle) {
-	struct usb_bus *bus;
-	struct usb_device *dev, *pdev;
+	struct usb_device *pdev;
 	struct SI_Private * Handle;
-	int devcount;
 	int i;
 	DBG("SI_Open(DeviceNum=%i, pHandle=%p)\n",DeviceNum, pHandle);
 	init();
 
 	if (pHandle==NULL) return SI_INVALID_PARAMETER;
 
-	/*Find the device*/
-	devcount=0;
 	pdev=NULL;
-	for (bus = busses; bus; bus = bus->next) {
-		for (dev = bus->devices; dev; dev = dev->next) {
-			if (devcount==DeviceNum) pdev=dev;
-			devcount++;
-		}
-	}
+	scanBusses(DeviceNum, &pdev);
 
 	Handle=NULL;
 	if (pdev!=NULL) {
